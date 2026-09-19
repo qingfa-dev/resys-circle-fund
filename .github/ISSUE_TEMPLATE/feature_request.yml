@@ -1,0 +1,53 @@
+name: Feature / Story
+description: Propose a feature or user story
+title: "[Story] "
+labels: ["type:story"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      value: "As a ... I want ... so that ..."
+    validations:
+      required: true
+  - type: textarea
+    id: ac
+    attributes:
+      label: Acceptance criteria (Given/When/Then)
+      value: |
+        Given ...
+        When ...
+        Then ...
+    validations:
+      required: true
+  - type: input
+    id: iteration
+    attributes:
+      label: Iteration
+      placeholder: "e.g. Iteration 2"
+  - type: input
+    id: epic
+    attributes:
+      label: Epic
+      placeholder: "e.g. I2-E01 Payout Draw"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+    validations:
+      required: true
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Financial / offline checks
+      options:
+        - label: Business rules and validation defined
+        - label: Balance and ledger effects defined
+        - label: Authorization requirements defined
+        - label: Offline/sync behavior defined (pending-sync, conflict)
+        - label: Concurrency and duplicate-operation handling defined

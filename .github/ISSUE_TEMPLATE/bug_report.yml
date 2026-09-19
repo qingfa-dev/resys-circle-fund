@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a defect
+title: "[Bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably reproduce the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - Infra
+        - CI
+        - Tests
+        - Docs
+    validations:
+      required: true
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Offline / financial relevance
+      options:
+        - label: Reproduces while offline or during sync
+        - label: Involves financial data (ledger, balance, payout)

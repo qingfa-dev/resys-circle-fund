@@ -1,0 +1,25 @@
+name: Engineering task
+description: A non-user-facing engineering task
+title: "[Task] "
+labels: ["type:task"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What needs to be done and why?
+    validations:
+      required: true
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] Acceptance criteria satisfied
+        - [ ] Validation, authorization, error handling implemented
+        - [ ] Unit/integration/API tests passing
+        - [ ] Offline/sync, concurrency, E2E tests where relevant
+        - [ ] Code reviewed; CI passing
+        - [ ] Documentation updated
+    validations:
+      required: true
