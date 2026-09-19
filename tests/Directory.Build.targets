@@ -1,0 +1,158 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       tests/Directory.Build.targets
+
+       Test-specific build validation.
+
+       Responsibilities:
+         - Ensure projects are valid test projects
+         - Validate test framework dependencies
+         - Validate CI test configuration
+         - Prevent accidental publishing
+         - Prevent accidental packaging
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. Test Project Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateTestProject"
+    BeforeTargets="Build"
+    Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(IsTestProject)' != 'true'"
+      Text="Every project under tests/ must be marked as a test project." />
+
+    <Error
+      Condition="'$(TargetFramework)' != 'net10.0'"
+      Text="CircleFund tests must target net10.0. Current target: $(TargetFramework)." />
+
+    <Error
+      Condition="'$(Nullable)' != 'enable'"
+      Text="Nullable reference types must be enabled for tests." />
+
+    <Error
+      Condition="'$(EnableNETAnalyzers)' != 'true'"
+      Text=".NET analyzers must be enabled for tests." />
+
+    <Error
+      Condition="'$(TreatWarningsAsErrors)' != 'true'"
+      Text="Test builds must treat warnings as errors." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       2. Test SDK Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateTestSdk"
+    BeforeTargets="Build"
+    Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <!--
+      Every executable test project requires Microsoft.NET.Test.Sdk.
+
+      Package version is controlled centrally by:
+
+        tests/Directory.Packages.props
+    -->
+    <Error
+      Condition="
+        '@(PackageReference->WithMetadataValue('Identity', 'Microsoft.NET.Test.Sdk')->Count())' == '0'"
+      Text="
+        Test project $(MSBuildProjectName) must reference
+        Microsoft.NET.Test.Sdk.
+      " />
+
+  </Target>
+
+
+  <!-- ============================================================
+       3. Test Packaging Protection
+       ============================================================ -->
+
+  <Target
+    Name="ReSysPreventTestPack"
+    BeforeTargets="Pack">
+
+    <Error
+      Text="
+        Test project $(MSBuildProjectName) cannot be packed.
+      " />
+
+  </Target>
+
+
+  <!-- ============================================================
+       4. Test Publishing Protection
+       ============================================================ -->
+
+  <Target
+    Name="ReSysPreventTestPublish"
+    BeforeTargets="Publish">
+
+    <Error
+      Text="
+        Test project $(MSBuildProjectName) cannot be published.
+      " />
+
+  </Target>
+
+
+  <!-- ============================================================
+       5. CI Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateTestCI"
+    BeforeTargets="Build"
+    Condition="'$(CI)' == 'true'">
+
+    <Error
+      Condition="'$(ContinuousIntegrationBuild)' != 'true'"
+      Text="CI test builds require ContinuousIntegrationBuild=true." />
+
+    <Error
+      Condition="'$(Deterministic)' != 'true'"
+      Text="CI test builds require Deterministic=true." />
+
+    <Error
+      Condition="'$(RestoreLockedMode)' != 'true'"
+      Text="CI test builds require RestoreLockedMode=true." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       6. Build Information
+       ============================================================ -->
+
+  <Target
+    Name="ReSysTestBuildInformation"
+    AfterTargets="Build"
+    Condition="
+      '$(CI)' == 'true' AND
+      '$(DesignTimeBuild)' != 'true'">
+
+    <Message
+      Importance="High"
+      Text="
+        ReSys.CircleFund.Tests |
+        Project=$(MSBuildProjectName) |
+        Target=$(TargetFramework) |
+        Configuration=$(Configuration) |
+        CI=$(CI) |
+        Deterministic=$(Deterministic)
+      " />
+
+  </Target>
+
+
+</Project>

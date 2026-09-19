@@ -1,0 +1,626 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       src/Directory.Packages.props
+
+       Central package version management for production projects.
+
+       Responsibilities:
+         - Production package versions
+         - Framework package versions
+         - Infrastructure integrations
+         - Observability
+         - Authentication
+         - Background processing
+         - Collaboration
+         - Future platform integrations
+
+       Important:
+         This file defines PACKAGE VERSIONS only.
+
+         Individual vertical-slice projects decide which packages
+         they actually reference.
+
+       Tests have a completely separate package catalog under:
+
+         tests/Directory.Packages.props
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. Central Package Management
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Enable central package version management.
+    -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <!--
+      Pin transitive dependencies when centrally managed packages
+      require deterministic dependency resolution.
+    -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+
+    <!-- ========================================================
+         Framework Versions
+         ======================================================== -->
+
+    <DotNetVersion>10.0.9</DotNetVersion>
+
+    <AspNetCoreVersion>10.0.9</AspNetCoreVersion>
+
+    <ExtensionsVersion>10.6.0</ExtensionsVersion>
+
+    <EFCoreVersion>10.0.9</EFCoreVersion>
+
+
+    <!-- ========================================================
+         Platform Versions
+         ======================================================== -->
+
+    <AspireVersion>13.4.6</AspireVersion>
+
+    <OpenTelemetryVersion>1.16.0</OpenTelemetryVersion>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       2. ASP.NET Core / HTTP / API
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.OpenApi"
+      Version="$(AspNetCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.OpenApi"
+      Version="2.9.0" />
+
+    <PackageVersion
+      Include="Scalar.AspNetCore"
+      Version="2.16.6" />
+
+    <!--
+      Optional lightweight endpoint routing abstraction.
+
+      Use only if the API profile adopts Carter.
+    -->
+    <PackageVersion
+      Include="Carter"
+      Version="10.0.0" />
+
+    <!--
+      Reverse proxy / gateway capability.
+
+      Primarily intended for future platform deployments.
+    -->
+    <PackageVersion
+      Include="Yarp.ReverseProxy"
+      Version="2.3.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       3. Vertical Slice Application
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      Mediation between commands/queries and their handlers.
+
+      Only slices requiring mediator-based dispatch should reference
+      this package.
+    -->
+    <PackageVersion
+      Include="MediatR"
+      Version="14.1.0" />
+
+    <!--
+      Command/query/request validation.
+    -->
+    <PackageVersion
+      Include="FluentValidation"
+      Version="12.1.1" />
+
+    <PackageVersion
+      Include="FluentValidation.DependencyInjectionExtensions"
+      Version="12.1.1" />
+
+    <!--
+      Object mapping.
+
+      Use selectively. Do not introduce mapping layers where
+      direct projection is clearer.
+    -->
+    <PackageVersion
+      Include="Mapster"
+      Version="10.0.9" />
+
+    <PackageVersion
+      Include="Mapster.DependencyInjection"
+      Version="10.0.9" />
+
+    <!--
+      Human-readable identifiers / URL slugs where required.
+    -->
+    <PackageVersion
+      Include="Slugify.Core"
+      Version="5.1.1" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       4. Entity Framework Core
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore"
+      Version="$(EFCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.Design"
+      Version="$(EFCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.Tools"
+      Version="$(EFCoreVersion)" />
+
+    <!--
+      Useful only for isolated development/testing scenarios.
+
+      Financial production persistence remains PostgreSQL.
+    -->
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore.InMemory"
+      Version="$(EFCoreVersion)" />
+
+    <!--
+      PostgreSQL EF Core provider.
+    -->
+    <PackageVersion
+      Include="Npgsql.EntityFrameworkCore.PostgreSQL"
+      Version="10.0.2" />
+
+    <!--
+      Direct Npgsql access.
+
+      Required only where PostgreSQL-specific functionality is
+      intentionally used, such as:
+        - advisory locks
+        - database-level commands
+        - PostgreSQL-specific transactions
+        - LISTEN/NOTIFY where applicable
+        - COPY
+    -->
+    <PackageVersion
+      Include="Npgsql"
+      Version="10.0.2" />
+
+    <!--
+      PostgreSQL naming convention support.
+    -->
+    <PackageVersion
+      Include="EFCore.NamingConventions"
+      Version="10.0.1" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       5. PostgreSQL Vector / Future AI
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      PostgreSQL vector support.
+
+      Intended for future AI/search capabilities such as:
+        - semantic search
+        - document similarity
+        - knowledge retrieval
+        - AI-assisted financial/document analysis
+
+      Do not introduce into the financial core unless required.
+    -->
+    <PackageVersion
+      Include="Pgvector"
+      Version="0.3.2" />
+
+    <PackageVersion
+      Include="Pgvector.EntityFrameworkCore"
+      Version="0.3.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       6. Caching / Resilience / Service Discovery
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.Extensions.Caching.Hybrid"
+      Version="$(ExtensionsVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.Caching.StackExchangeRedis"
+      Version="$(DotNetVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.Hosting"
+      Version="$(DotNetVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.Http.Resilience"
+      Version="$(ExtensionsVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.Resilience"
+      Version="$(ExtensionsVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.ServiceDiscovery"
+      Version="$(ExtensionsVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.Extensions.ServiceDiscovery.Yarp"
+      Version="$(ExtensionsVersion)" />
+
+    <!--
+      Direct Redis client.
+
+      Redis is infrastructure/cache/collaboration infrastructure.
+
+      Redis must NOT become the source of truth for financial state.
+    -->
+    <PackageVersion
+      Include="StackExchange.Redis"
+      Version="2.9.32" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       7. Authentication / Authorization / Security
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.Authentication.JwtBearer"
+      Version="$(AspNetCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"
+      Version="$(AspNetCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore"
+      Version="$(AspNetCoreVersion)" />
+
+    <PackageVersion
+      Include="System.IdentityModel.Tokens.Jwt"
+      Version="8.19.1" />
+
+    <!--
+      Google authentication integration.
+    -->
+    <PackageVersion
+      Include="Google.Apis.Auth"
+      Version="1.75.0" />
+
+    <!--
+      ECDSA implementation used by selected integrations.
+    -->
+    <PackageVersion
+      Include="starkbank-ecdsa"
+      Version="1.3.3" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       8. Background Jobs
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Hangfire.AspNetCore"
+      Version="1.8.23" />
+
+    <PackageVersion
+      Include="Hangfire.InMemory"
+      Version="1.0.0" />
+
+    <PackageVersion
+      Include="Hangfire.Redis.StackExchange"
+      Version="1.12.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       9. Email / SMS / Messaging Integrations
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="FluentEmail.Core"
+      Version="3.0.2" />
+
+    <PackageVersion
+      Include="FluentEmail.SendGrid"
+      Version="3.0.2" />
+
+    <PackageVersion
+      Include="FluentEmail.Smtp"
+      Version="3.0.2" />
+
+    <!--
+      Direct SMTP/MIME implementation.
+
+      Useful when email delivery requires more control than
+      FluentEmail abstractions provide.
+    -->
+    <PackageVersion
+      Include="MailKit"
+      Version="4.14.1" />
+
+    <!--
+      SMS / communication provider.
+    -->
+    <PackageVersion
+      Include="Sinch"
+      Version="1.5.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       10. File / Object Storage
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      S3-compatible object storage.
+
+      Intended for:
+        - member documents
+        - receipts
+        - exported reports
+        - attachments
+        - backups/artifacts where applicable
+    -->
+    <PackageVersion
+      Include="AWSSDK.S3"
+      Version="4.0.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       11. Billing / Subscription
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      Subscription and billing integration.
+
+      Billing must remain outside the financial CircleFund ledger.
+    -->
+    <PackageVersion
+      Include="Stripe.net"
+      Version="52.1.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       12. Image / Document Processing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="SkiaSharp"
+      Version="3.116.1" />
+
+    <PackageVersion
+      Include="SkiaSharp.NativeAssets.Linux"
+      Version="3.116.1" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       13. Malware Scanning
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      ClamAV integration for uploaded files.
+
+      Keep file scanning in the file/integration boundary.
+    -->
+    <PackageVersion
+      Include="nClam"
+      Version="7.0.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       14. Collaboration / SignalR
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      SignalR server-side Redis backplane.
+
+      SignalR is NOT the financial source of truth.
+
+      Expected flow:
+
+        Command
+          ↓
+        Database transaction
+          ↓
+        Outbox
+          ↓
+        Dispatcher
+          ↓
+        SignalR
+    -->
+    <PackageVersion
+      Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis"
+      Version="$(AspNetCoreVersion)" />
+
+    <!--
+      Optional compact serialization for collaboration/event
+      payloads.
+    -->
+    <PackageVersion
+      Include="MessagePack"
+      Version="3.1.7" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       15. Health Checks
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="AspNetCore.HealthChecks.Npgsql"
+      Version="9.0.0" />
+
+    <PackageVersion
+      Include="AspNetCore.HealthChecks.Redis"
+      Version="9.0.0" />
+
+    <PackageVersion
+      Include="AspNetCore.HealthChecks.UI.Client"
+      Version="9.0.0" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       16. OpenTelemetry
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="OpenTelemetry.Extensions.Hosting"
+      Version="$(OpenTelemetryVersion)" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"
+      Version="$(OpenTelemetryVersion)" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Instrumentation.AspNetCore"
+      Version="$(OpenTelemetryVersion)" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Instrumentation.Http"
+      Version="$(OpenTelemetryVersion)" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Instrumentation.Runtime"
+      Version="1.15.1" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Instrumentation.EntityFrameworkCore"
+      Version="1.16.0-beta.1" />
+
+    <PackageVersion
+      Include="OpenTelemetry.Instrumentation.StackExchangeRedis"
+      Version="1.16.0-beta.1" />
+
+    <PackageVersion
+      Include="Npgsql.OpenTelemetry"
+      Version="10.0.2" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       17. .NET Aspire
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Aspire.Hosting.JavaScript"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="Aspire.Hosting.NodeJs"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="Aspire.Hosting.PostgreSQL"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="Aspire.Hosting.Python"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="Aspire.Hosting.Redis"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions"
+      Version="$(AspireVersion)" />
+
+    <PackageVersion
+      Include="CommunityToolkit.Aspire.Hosting.PapercutSmtp"
+      Version="$(AspireVersion)" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       18. Source Link
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.SourceLink.GitHub"
+      Version="8.0.0" />
+
+  </ItemGroup>
+
+
+</Project>

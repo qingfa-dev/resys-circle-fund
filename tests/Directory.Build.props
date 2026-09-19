@@ -1,0 +1,218 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       tests/Directory.Build.props
+
+       Test-specific MSBuild properties.
+
+       Responsibilities:
+         - Test framework configuration
+         - Test analyzer configuration
+         - Test warnings
+         - Test parallelization
+         - Coverage defaults
+         - CI test configuration
+         - NuGet restore behavior
+
+       Production configuration lives separately under:
+
+         src/Directory.Build.props
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. Core .NET Configuration
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Tests target the same framework as production.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <Nullable>enable</Nullable>
+
+    <DebugType>portable</DebugType>
+
+    <DebugSymbols>true</DebugSymbols>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       2. Compiler and Code Quality
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!--
+      Test-specific analyzer exceptions.
+
+      CS1591:
+        Test methods do not require XML documentation.
+
+      CS1573:
+        Test APIs do not require complete parameter documentation.
+
+      CA1707:
+        Underscores are commonly used in descriptive test names.
+
+      xUnit1051:
+        CancellationToken guidance can be intentionally bypassed
+        for test methods where the framework controls execution.
+
+      CA1861:
+        Test data frequently uses inline constant arrays.
+    -->
+    <NoWarn>
+      $(NoWarn);
+      CS1591;
+      CS1573;
+      CA1707;
+      xUnit1051;
+      CA1861
+    </NoWarn>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       3. Test Project Configuration
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Every project under tests is a test project unless explicitly
+      overridden for a specialized tooling project.
+    -->
+    <IsTestProject>true</IsTestProject>
+
+    <!--
+      Test assemblies are never NuGet packages.
+    -->
+    <IsPackable>false</IsPackable>
+
+    <!--
+      Test assemblies are not deployable application artifacts.
+    -->
+    <IsPublishable>false</IsPublishable>
+
+    <!--
+      Test projects do not generate XML API documentation.
+    -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       4. Test Parallelization
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Run independent test collections in parallel.
+
+      Tests involving shared database state should isolate that state
+      through transactions, unique databases, or test fixtures.
+    -->
+    <ParallelizeTestCollections>true</ParallelizeTestCollections>
+
+    <!--
+      Zero means use the test framework's default worker count.
+    -->
+    <MaxParallelThreads>0</MaxParallelThreads>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       5. CI / Reproducible Test Builds
+       ============================================================ -->
+
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+    <Deterministic>true</Deterministic>
+
+    <!--
+      CI must use the committed NuGet dependency graph.
+    -->
+    <RestoreLockedMode>true</RestoreLockedMode>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       6. NuGet Restore
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       7. NuGet Security
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <NuGetAudit>true</NuGetAudit>
+
+    <NuGetAuditMode>all</NuGetAuditMode>
+
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       8. Code Coverage
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Coverage remains opt-in.
+
+      Example:
+
+        dotnet test collect:"XPlat Code Coverage"
+
+      or CI-specific coverage configuration.
+    -->
+    <CollectCoverage
+      Condition="'$(CollectCoverage)' == ''">false</CollectCoverage>
+
+    <CoverletOutputFormat>
+      cobertura,json
+    </CoverletOutputFormat>
+
+    <CoverletOutput>
+      $(MSBuildProjectDirectory)/coverage/
+    </CoverletOutput>
+
+  </PropertyGroup>
+
+
+</Project>

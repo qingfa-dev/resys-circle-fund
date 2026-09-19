@@ -1,0 +1,244 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       src/Directory.Build.props
+
+       Production MSBuild properties.
+
+       Responsibilities:
+         - .NET framework
+         - Compiler configuration
+         - Analyzer configuration
+         - Repository metadata
+         - NuGet auditing
+         - Versioning
+         - CI configuration
+         - Restore configuration
+         - Production project defaults
+
+       Tests have an independent MSBuild profile under:
+
+         tests/Directory.Build.props
+
+       This file does NOT inject production NuGet dependencies.
+       Individual vertical slices declare their own packages.
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. Core .NET Configuration
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      CircleFund uses .NET 10.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!--
+      Enable SDK global usings.
+    -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      Nullable reference type analysis is mandatory.
+    -->
+    <Nullable>enable</Nullable>
+
+    <!--
+      Use the stable language version provided by the selected SDK.
+
+      Do not globally use preview language features.
+    -->
+
+    <!--
+      Portable symbols are required for useful diagnostics and
+      Source Link debugging.
+    -->
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+
+    <!--
+      Generate reference assemblies where supported.
+    -->
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       2. Compiler and Code Quality
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!--
+      Repository-wide exceptions.
+
+      Keep these intentionally limited and documented.
+    -->
+    <NoWarn>
+      $(NoWarn);
+      CA1716;
+      CA1848
+    </NoWarn>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       3. Documentation
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <!--
+      Production projects generate XML documentation.
+
+      This can be disabled explicitly for executable-only projects
+      where documentation files provide no value.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       4. Security / NuGet Auditing
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <NuGetAudit>true</NuGetAudit>
+
+    <NuGetAuditMode>all</NuGetAuditMode>
+
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       5. Versioning
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">
+      1.0.0.0
+    </AssemblyVersion>
+
+    <FileVersion Condition="'$(FileVersion)' == ''">
+      1.0.0.0
+    </FileVersion>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       6. Repository Metadata
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <Authors>ReSys Team</Authors>
+
+    <Company>ReSys</Company>
+
+    <Product>ReSys.CircleFund</Product>
+
+    <!--
+      Application projects are not NuGet packages by default.
+    -->
+    <IsPackable>false</IsPackable>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <RepositoryUrl>
+      https://github.com/qingfa-dev/resys-circle-fund.git
+    </RepositoryUrl>
+
+    <RepositoryType>git</RepositoryType>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       7. NuGet Package Metadata
+       ============================================================ -->
+
+  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
+
+    <Copyright>Copyright © ReSys Team</Copyright>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <PackageProjectUrl>
+      https://github.com/qingfa-dev/resys-circle-fund
+    </PackageProjectUrl>
+
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       8. CI / Reproducible Builds
+       ============================================================ -->
+
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+    <Deterministic>true</Deterministic>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!--
+      CI must use the committed NuGet lock files.
+
+      This prevents CI from silently resolving a newer dependency
+      graph than the one committed to source control.
+    -->
+    <RestoreLockedMode>true</RestoreLockedMode>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       9. NuGet Restore
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       10. Build Optimization
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <OptimizeImplicitlyTriggeredBuild>true</OptimizeImplicitlyTriggeredBuild>
+
+  </PropertyGroup>
+
+
+</Project>

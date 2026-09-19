@@ -1,0 +1,217 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       src/Directory.Build.targets
+
+       Production build targets and validation.
+
+       Responsibilities:
+         - Build configuration validation
+         - Release validation
+         - CI validation
+         - Source Link validation
+         - Restore validation
+         - Publish validation
+         - Package validation
+
+       Do NOT put common properties here.
+
+       Common properties belong in:
+         src/Directory.Build.props
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. General Build Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateBuildConfiguration"
+    BeforeTargets="CoreCompile"
+    Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(TargetFramework)' != 'net10.0'"
+      Text="ReSys.CircleFund production projects must target net10.0. Current target: $(TargetFramework)." />
+
+    <Error
+      Condition="'$(Nullable)' != 'enable'"
+      Text="Nullable reference types must be enabled." />
+
+    <Error
+      Condition="'$(EnableNETAnalyzers)' != 'true'"
+      Text=".NET analyzers must be enabled." />
+
+    <Error
+      Condition="'$(TreatWarningsAsErrors)' != 'true'"
+      Text="TreatWarningsAsErrors must be enabled." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       2. Release Configuration Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateReleaseConfiguration"
+    BeforeTargets="Build"
+    Condition="
+      '$(Configuration)' == 'Release' AND
+      '$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(Deterministic)' != 'true'"
+      Text="Release builds must be deterministic." />
+
+    <Error
+      Condition="'$(TreatWarningsAsErrors)' != 'true'"
+      Text="Release builds must treat warnings as errors." />
+
+    <Error
+      Condition="
+        '$(DebugType)' == '' OR
+        '$(DebugType)' == 'none'"
+      Text="Release builds must generate portable debug symbols." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       3. CI Configuration Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateCIConfiguration"
+    BeforeTargets="Build"
+    Condition="'$(CI)' == 'true'">
+
+    <Error
+      Condition="'$(ContinuousIntegrationBuild)' != 'true'"
+      Text="CI builds require ContinuousIntegrationBuild=true." />
+
+    <Error
+      Condition="'$(Deterministic)' != 'true'"
+      Text="CI builds require Deterministic=true." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       4. Source Link Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateSourceLink"
+    BeforeTargets="Build"
+    Condition="
+      '$(CI)' == 'true' AND
+      '$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(PublishRepositoryUrl)' != 'true'"
+      Text="CI builds require PublishRepositoryUrl=true." />
+
+    <Error
+      Condition="'$(RepositoryUrl)' == ''"
+      Text="RepositoryUrl must be configured." />
+
+    <Error
+      Condition="'$(RepositoryType)' != 'git'"
+      Text="RepositoryType must be git." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       5. Restore Lock File Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidateRestoreConfiguration"
+    BeforeTargets="Restore"
+    Condition="'$(CI)' == 'true'">
+
+    <Error
+      Condition="'$(RestorePackagesWithLockFile)' != 'true'"
+      Text="CI builds require NuGet package lock files." />
+
+    <Error
+      Condition="'$(RestoreLockedMode)' != 'true'"
+      Text="CI builds require RestoreLockedMode=true." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       6. Publish Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidatePublish"
+    BeforeTargets="Publish"
+    Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(TargetFramework)' == ''"
+      Text="TargetFramework must be defined before publishing." />
+
+    <Error
+      Condition="'$(IsTestProject)' == 'true'"
+      Text="Test projects cannot be published from the src profile." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       7. Package Validation
+       ============================================================ -->
+
+  <Target
+    Name="ReSysValidatePack"
+    BeforeTargets="Pack"
+    Condition="
+      '$(IsPackable)' == 'true' AND
+      '$(DesignTimeBuild)' != 'true'">
+
+    <Error
+      Condition="'$(RepositoryUrl)' == ''"
+      Text="Packable projects must define RepositoryUrl." />
+
+    <Error
+      Condition="
+        '$(PackageLicenseExpression)' == '' AND
+        '$(PackageLicenseFile)' == ''"
+      Text="Packable projects must define a package license." />
+
+  </Target>
+
+
+  <!-- ============================================================
+       8. Build Information
+       ============================================================ -->
+
+  <Target
+    Name="ReSysBuildInformation"
+    AfterTargets="Build"
+    Condition="
+      '$(CI)' == 'true' AND
+      '$(DesignTimeBuild)' != 'true'">
+
+    <Message
+      Importance="High"
+      Text="
+        ReSys.CircleFund |
+        Project=$(MSBuildProjectName) |
+        Target=$(TargetFramework) |
+        Configuration=$(Configuration) |
+        Version=$(Version) |
+        CI=$(CI) |
+        Deterministic=$(Deterministic)
+      " />
+
+  </Target>
+
+
+</Project>

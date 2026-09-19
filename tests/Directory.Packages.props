@@ -1,0 +1,198 @@
+<Project>
+
+  <!-- ============================================================
+       ReSys.CircleFund
+       tests/Directory.Packages.props
+
+       Central package versions for ALL test projects.
+
+       Production dependencies are intentionally NOT copied here.
+
+       Test projects obtain production code through ProjectReference
+       and add only packages required for testing.
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       1. Central Package Management
+       ============================================================ -->
+
+  <PropertyGroup>
+
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <DotNetVersion>10.0.9</DotNetVersion>
+
+    <AspNetCoreVersion>10.0.9</AspNetCoreVersion>
+
+    <EFCoreVersion>10.0.9</EFCoreVersion>
+
+    <AspireVersion>13.4.6</AspireVersion>
+
+  </PropertyGroup>
+
+
+  <!-- ============================================================
+       2. Test Platform
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.NET.Test.Sdk"
+      Version="18.7.0" />
+
+    <PackageVersion
+      Include="xunit.v3"
+      Version="3.2.2" />
+
+    <PackageVersion
+      Include="xunit.runner.visualstudio"
+      Version="3.1.5" />
+
+    <PackageVersion
+      Include="xunit.analyzers"
+      Version="1.27.0" />
+
+    <PackageVersion
+      Include="coverlet.collector"
+      Version="10.0.1" />
+
+    <PackageVersion
+      Include="FluentAssertions"
+      Version="8.10.0" />
+
+    <PackageVersion
+      Include="Moq"
+      Version="4.20.72" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       3. ASP.NET Integration Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.TestHost"
+      Version="$(AspNetCoreVersion)" />
+
+    <PackageVersion
+      Include="Microsoft.AspNetCore.Mvc.Testing"
+      Version="$(AspNetCoreVersion)" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       4. PostgreSQL Integration Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Testcontainers.PostgreSql"
+      Version="4.12.0" />
+
+    <PackageVersion
+      Include="Respawn"
+      Version="7.0.0" />
+
+    <PackageVersion
+      Include="Microsoft.EntityFrameworkCore"
+      Version="$(EFCoreVersion)" />
+
+    <PackageVersion
+      Include="Npgsql.EntityFrameworkCore.PostgreSQL"
+      Version="10.0.2" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       5. Redis Integration Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Testcontainers.Redis"
+      Version="4.12.0" />
+
+    <PackageVersion
+      Include="StackExchange.Redis"
+      Version="2.9.32" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       6. Resilience Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Polly.Core"
+      Version="8.6.6" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       7. Architecture Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      Used to verify vertical-slice architectural boundaries.
+
+      Example rules:
+        - Domain must not depend on infrastructure
+        - Financial slices must not depend on collaboration
+        - Integration adapters must not leak into domain code
+        - API must not directly access persistence internals
+    -->
+    <PackageVersion
+      Include="NetArchTest.Rules"
+      Version="1.3.2" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       8. .NET Aspire Testing
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <!--
+      Used for distributed integration tests involving resources
+      such as PostgreSQL, Redis, APIs, workers, and future services.
+    -->
+    <PackageVersion
+      Include="Aspire.Hosting.Testing"
+      Version="$(AspireVersion)" />
+
+  </ItemGroup>
+
+
+  <!-- ============================================================
+       9. Source Link
+       ============================================================ -->
+
+  <ItemGroup>
+
+    <PackageVersion
+      Include="Microsoft.SourceLink.GitHub"
+      Version="8.0.0" />
+
+  </ItemGroup>
+
+
+</Project>
