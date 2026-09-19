@@ -2,350 +2,73 @@
 
 ## Overview
 
-CircleFund requires thorough testing at multiple levels due to its financial nature. The testing pyramid guides investment: many domain/unit tests, moderate integration tests, moderate API tests, few end-to-end tests.
+Multi-level testing, weighted toward domain/unit tests. Offline/sync and financial correctness are treated as cross-cutting test concerns from Iteration 1, not deferred.
 
 ```text
-                   E2E
-                    ▲
-                    │
-               API Tests
-                    ▲
-                    │
-           Integration Tests
-                    ▲
-                    │
-              Unit Tests
-                    ▲
-                    │
-              Domain Tests
+Domain/Unit → Integration → API → Authorization → Concurrency → Offline/Sync → E2E
 ```
 
 ## Test Levels
 
-### Level 1: Domain/Unit Tests
+### Domain / Unit
 
-**Scope:** Pure domain logic, no database, no framework
+Scope: pure domain logic. Coverage: business rules (`docs/01-requirements/business-rules.md`), financial calculations (contribution, payout draw, bidding, interest, balance), state transitions, validation, idempotency, money/rounding, debt, reconciliation.
 
-**Coverage:**
+Targets: zero/negative amount, duplicate operation, closed round, missing member, multiple shares, late/partial payment, rounding, same-time updates.
 
-- Business rules (all rules in `docs/01-requirements/business-rules.md`)
-- Financial calculations (contributions, payouts, interest, balances)
-- State machine transitions (circle, period, contribution, member states)
-- Validation logic
-- Idempotency logic
-- Concurrency scenarios
-- Money handling and rounding
-- Debt calculations
-- Reconciliation logic
+### Integration
 
-**Test Runner:** xUnit
+Scope: API + Application + Database (isolated test DB). Coverage: endpoint behavior, database state, authorization, validation, error formats, pagination/filtering, idempotency, transaction rollback.
 
-**Test Pattern:**
+### API Contract
 
-```csharp
-[Fact]
-void RecordContribution_PositiveAmount_Succeeds()
-{
-    // Arrange
-    var contribution = new Contribution(amount: 1000000m);
+Scope: response/error schemas, status codes, validation/authorization behavior, pagination/sorting/filtering, idempotency headers (OpenAPI-driven).
 
-    // Act
-    var result = contribution.Validate();
+### Authorization
 
-    // Assert
-    Assert.True(result.IsValid);
-}
+Explicit tests for every role and resource-ownership rule (NFR-001/002).
 
-[Fact]
-void RecordContribution_ZeroAmount_Fails()
-{
-    // Arrange
-    var contribution = new Contribution(amount: 0m);
+### Concurrency
 
-    // Act
-    var result = contribution.Validate();
+Scenarios: simultaneous contributions for same member/round; simultaneous payout draws; bid races; balance recalculation during contribution. Verifies: no double payout, no duplicate payment, no incorrect balance, no lost update, no inconsistent ledger. Mechanisms: optimistic concurrency, unique constraints, idempotency keys.
 
-    // Assert
-    Assert.False(result.IsValid);
-    Assert.Contains("Amount must be positive", result.Errors);
-}
-```
-
-**Target:** All business rules tested, especially:
-
-- Zero/negative amount handling
-- Duplicate operation prevention
-- Closed period rejection
-- Missing member validation
-- Multiple shares edge cases
-- Late payment handling
-- Partial payment scenarios
-- Rounding edge cases
-- Same-time concurrent updates
-
-### Level 2: Integration Tests
-
-**Scope:** API + Application + Database (test database, isolated per run)
-
-**Test Infrastructure:**
-
-- WebApplicationFactory for test server
-- Test-specific database (created/destroyed per test or test class)
-- Database migrations applied automatically
-- Seed data for test scenarios
-- No external dependencies (mocked)
-
-**Coverage:**
-
-- API endpoint behavior (all endpoints)
-- Database state changes
-- Authorization rules
-- Request validation
-- Error response formats
-- Pagination and filtering
-- Idempotency behavior
-- Transaction rollback on failure
-
-**Test Pattern:**
-
-```csharp
-[Fact]
-async Task POST_contribution_WithValidData_CreatesContribution()
-{
-    // Arrange
-    var client = _factory.CreateAuthenticatedClient();
-    var request = new RecordContributionRequest { ... };
-
-    // Act
-    var response = await client.PostAsync($"/api/circles/{circleId}/periods/{periodId}/contributions", request);
-
-    // Assert
-    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    var body = await response.Content.ReadAsAsync<ContributionResponse>();
-    Assert.NotNull(body.Data);
-
-    // Verify database state
-    using var scope = _factory.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var contribution = await dbContext.Contributions.FirstOrDefaultAsync(c => c.Id == body.Data.Id);
-    Assert.NotNull(contribution);
-    Assert.Equal(Amount, contribution.Amount);
-}
-```
-
-### Level 3: API Contract Tests
-
-**Scope:** Verify API contracts independently of frontend
-
-**Coverage:**
-
-- Response schema validation (all endpoints)
-- Error response schema validation
-- Status codes for all scenarios
-- Validation behavior (all validation rules)
-- Authorization behavior (all roles)
-- Pagination, sorting, filtering behavior
-- Idempotency header behavior
-
-**Tools:** FluentAssertions, custom contract validators
-
-### Level 4: End-to-End Tests
-
-**Scope:** Full application through the UI (Playwright)
-
-**Coverage:** Important business workflows, not every UI detail
-
-**Key E2E Tests:**
+### Offline / Sync (Elevated to I1/I2 CI)
 
 ```text
-Test 1: Contribution Workflow
-├── Create account
-├── Create circle
-├── Add members
-├── Generate period
-├── Record contribution
-├── Verify balance
-└── View dashboard
-
-Test 2: Payout Workflow
-├── Open period
-├── Run payout
-├── Verify ledger entries
-├── Check member statement
-└── Verify balance
-
-Test 3: Bidding Workflow
-├── Create bidding circle
-├── Open period
-├── Submit bids
-├── Determine winner
-├── Record payout
-└── Verify results
+Two devices queue conflicting edits to the same share      → resolved, not silently dropped
+Two devices queue conflicting financial mutations           → flagged for manual reconciliation
+Device goes offline mid-operation, reconnects after delay   → operation completes exactly once
+Local ID collides with a since-created server ID            → detected and remapped
 ```
 
-### Level 5: Concurrency Tests
+This test class belongs in the Iteration 1 and 2 CI suite, not a later "offline epic." Acceptance criteria (Given/When/Then) include offline/sync steps for financial stories.
 
-**Scope:** Verify correct behavior under concurrent operations
+### End-to-End (Playwright)
 
-**Scenarios:**
-
-- Two users recording contributions simultaneously for same member/period
-- Two payout requests for same period
-- Bid submission race conditions
-- Member add/remove during contribution processing
-- Balance recalculation concurrent with contribution recording
-
-**Mechanisms:**
-
-- Optimistic concurrency (EF Core RowVersion)
-- Database locking (where needed)
-- Unique constraints (duplicate prevention)
-- Idempotency keys
-
-**Verification:**
-
-- No double payout
-- No duplicate payment
-- No incorrect balance
-- No lost update
-- No inconsistent ledger
+Key workflows: create account → create circle → add members → generate rounds → record contributions → view balance → dashboard; payout/bidding flow; member statement reconciliation.
 
 ## Test Organization
 
-### Test Project Structure
-
 ```text
 tests/
-├── CircleFund.UnitTests/
-│   ├── Domain/
-│   │   ├── Contributions/
-│   │   ├── Payouts/
-│   │   ├── Bidding/
-│   │   ├── Balances/
-│   │   ├── Ledger/
-│   │   └── ...
-│   ├── Application/
-│   │   ├── Validators/
-│   │   ├── Handlers/
-│   │   └── ...
-│   └── Infrastructure/
-│       └── ...
-│
-├── CircleFund.IntegrationTests/
-│   ├── Api/
-│   │   ├── Contributions/
-│   │   ├── Payouts/
-│   │   ├── Bidding/
-│   │   └── ...
-│   ├── Database/
-│   │   └── MigrationTests.cs
-│   └── Fixtures/
-│       ├── TestWebFactory.cs
-│       └── TestDataSeeder.cs
-│
-├── CircleFund.ApiTests/
-│   ├── Contracts/
-│   ├── Authorization/
-│   └── Idempotency/
-│
-└── CircleFund.E2ETests/
-    ├── Workflows/
-    │   ├── ContributionWorkflow.cs
-    │   ├── PayoutWorkflow.cs
-    │   └── BiddingWorkflow.cs
-    └── Pages/
-        ├── LoginPage.cs
-        ├── DashboardPage.cs
-        └── ...
+├── CircleFund.UnitTests/         Domain, Application, Infrastructure
+├── CircleFund.IntegrationTests/  Api, Database, Fixtures
+├── CircleFund.ApiTests/          Contracts, Authorization, Idempotency, Sync
+└── CircleFund.E2ETests/          Workflows, Pages
 ```
 
 ## Financial Calculation Testing
 
-All financial calculations must be tested with edge cases:
+Money edge cases: exact, decimals, large/small, zero (rejected), negative (rejected), rounding policies, interest across rounds. Financial workflow tests: contribution→balance→ledger (atomic); reversal→correction (no overwrite); payout→balance→ledger; bidding→winner→payout→ledger; round close→balance freeze.
 
-### Money Tests
+## Test Data
 
-- [ ] Exact amounts
-- [ ] Amounts with decimals
-- [ ] Large amounts
-- [ ] Very small amounts (minimum unit)
-- [ ] Zero (rejected)
-- [ ] Negative (rejected)
-- [ ] Rounding (half-up, half-down, banker's)
-- [ ] Multiplication precision
-- [ ] Division precision and remainder handling
-- [ ] Interest calculation over different periods
+Auto-generated/seeded, independent per test, realistic financial values, no real data.
 
-### Financial Workflow Tests
+## CI
 
-- [ ] Contribution → Balance update → Ledger entry (all in one transaction)
-- [ ] Reversal → New correction entry (no overwriting)
-- [ ] Payout → Balance update → Ledger entry
-- [ ] Bidding → Winner → Payout → Ledger entry
-- [ ] Period closing → Balance freeze → Final ledger entries
+Every PR: checkout → restore → build → lint/format → unit → integration → API → security scan → publish. Coverage targets: domain >90%, integration >70%, API contract 100%, E2E ~20% (key workflows).
 
-## Test Data Management
+## Naming
 
-### Principles
-
-- Each test should be independent
-- Test data seeded automatically per test run
-- No shared mutable state between tests
-- Realistic data for financial scenarios
-- No real financial or personal data
-
-### Seed Data
-
-```text
-Test circles (3-5 with different types)
-Test members (10-20 across circles)
-Test periods (5-10 per circle)
-Test contributions (various statuses)
-Test ledger entries (matching contributions)
-```
-
-## Continuous Integration Testing
-
-Every PR runs:
-
-```text
-Checkout
-  ↓
-Restore dependencies
-  ↓
-Build (with warnings as errors)
-  ↓
-Lint / formatting check
-  ↓
-Unit tests (>80% coverage on domain)
-  ↓
-Integration tests (all API endpoints)
-  ↓
-API contract tests
-  ↓
-Security scan
-  ↓
-Publish results
-```
-
-## Coverage Targets
-
-| Level | Target | Notes |
-|-------|--------|-------|
-| Domain/Unit | >90% | Business rules must be fully tested |
-| Integration | >70% | Critical paths fully tested |
-| API Contract | 100% | All endpoints tested for basic behavior |
-| E2E | ~20% | Key workflows only |
-
-## Test Naming Convention
-
-```text
-[TestMethod]_[Scenario]_[ExpectedResult]
-```
-
-Examples:
-
-- `RecordContribution_PositiveAmount_Succeeds`
-- `RecordContribution_DuplicateKey_ReturnsCachedResult`
-- `DetermineWinner_NoBids_ThrowsInvalidOperationException`
-- `CalculateBalance_AfterContribution_ReflectsNewBalance`
+`[Method]_[Scenario]_[ExpectedResult]` — e.g., `RecordContribution_DuplicateKey_ReturnsCachedResult`.
