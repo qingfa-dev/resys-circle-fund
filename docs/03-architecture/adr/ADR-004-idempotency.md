@@ -32,10 +32,10 @@ CircleFund uses **idempotency keys** for all financial mutation endpoints.
 
 ### Endpoints Requiring Idempotency
 
-- POST /api/circles/{circleId}/periods/{periodId}/contributions
-- POST /api/circles/{circleId}/periods/{periodId}/payouts
-- POST /api/circles/{circleId}/periods/{periodId}/bids
-- POST /api/circles/{circleId}/periods/{periodId}/reversals
+- POST /api/circles/{circleId}/rounds/{roundId}/contributions
+- POST /api/circles/{circleId}/rounds/{roundId}/payouts
+- POST /api/circles/{circleId}/rounds/{roundId}/bids
+- POST /api/circles/{circleId}/rounds/{roundId}/reversals
 - Any other financial mutation endpoint
 
 ### Endpoints NOT Requiring Idempotency

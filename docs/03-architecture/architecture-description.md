@@ -2,296 +2,84 @@
 
 ## 1. System Overview
 
-CircleFund is a web application designed as a progressive web application (PWA) with a REST API backend and a relational database.
+CircleFund is an **offline-first** web/PWA application with a REST API backend and relational database. The client captures operations locally and synchronizes with the server when connectivity returns (see `ADR-001` and `ADR-002`). The server is the authoritative source for all financial records.
 
 ```text
 ┌─────────────────────────────────┐
-│          CircleFund Web         │
-│        Vue + TypeScript         │
-│              PWA                │
+│          CircleFund Web (PWA)    │
+│        Vue 3 + TypeScript        │
+│   Local Store + Operation Queue  │
 └────────────────┬────────────────┘
-                  │
-                  │ REST API
-                  ▼
+                 │ REST API (HTTPS) + Sync
+                 ▼
 ┌─────────────────────────────────┐
-│       CircleFund API            │
-│        ASP.NET Core             │
-├─────────────────────────────────┤
-│          Application            │
-│             Domain              │
-│        Authorization            │
+│        CircleFund API            │
+│        ASP.NET Core              │
+│  Application · Domain · Auth     │
 └────────────────┬────────────────┘
-                  │
-                  ▼
+                 │
+                 ▼
 ┌─────────────────────────────────┐
-│            EF Core              │
+│            EF Core               │
 └────────────────┬────────────────┘
-                  │
-                  ▼
+                 │
+                 ▼
 ┌─────────────────────────────────┐
-│           PostgreSQL            │
+│           PostgreSQL             │
 └─────────────────────────────────┘
 ```
 
 ## 2. Architecture Style
 
-CircleFund follows a **domain-oriented, vertical-slice architecture** with CQRS-inspired patterns:
+Domain-oriented, vertical-slice architecture with CQRS-inspired patterns. Features are organized as vertical slices (`Features/Hoi/CreateHoi/…`, `Features/Contributions/RecordContribution/…`), each containing endpoint, request, validator, handler, response, mapping, and tests.
 
-- **Frontend:** Vue 3 + TypeScript, component-based, state managed via Pinia
-- **Backend:** ASP.NET Core Web API with vertical slice organization
-- **Domain:** Domain-driven design principles, business rules in domain/application layer
-- **Persistence:** Entity Framework Core with PostgreSQL
-- **Communication:** REST API between frontend and backend
+## 3. Offline-First Foundation
 
-## 3. Vertical Slice Organization
-
-Features are organized as vertical slices rather than horizontal layers:
+The client maintains a **local store** (IndexedDB/SQLite) and an **operation queue**. Every writing slice in Iterations 1–2 follows this flow:
 
 ```text
-Features/
-│
-├── Hoi/
-│   ├── CreateHoi/
-│   ├── GetHoi/
-│   ├── UpdateHoi/
-│   ├── CloseHoi/
-│   └── ...
-│
-├── Contributions/
-│   ├── RecordContribution/
-│   ├── GetContribution/
-│   └── ...
-│
-├── Bidding/
-│   ├── RecordBid/
-│   ├── DetermineWinner/
-│   └── ...
-│
-├── Members/
-│   ├── AddMember/
-│   ├── RemoveMember/
-│   └── ...
-│
-└── Reports/
+Local action → Local write + local ID → Queue (IndexedDB/SQLite)
+   → Connectivity → Sync to server → Server conflict check
+   → Commit & mark synced | Flag for user resolution
 ```
 
-## 4. Vertical Slice Pattern
+- Local operations carry a unique **local ID** (`FR-I1-041`) and an idempotency key.
+- Sync is FIFO and replays operations exactly once.
+- Conflicts are surfaced for resolution, never silently discarded (`FR-I1-044`).
+- Pending-sync financial records are never treated as authoritative (`FR-I2-049`).
 
-Each vertical slice contains:
+## 4. Layers
 
-```text
-Endpoint
-Request (command/query)
-Validator
-Command/Query Handler
-Response (result/DTO)
-Mapping
-Tests
-```
+- **Presentation (Frontend):** UI, client validation, Pinia state, local queue, offline cache, sync client.
+- **Application (Backend):** API endpoints, command/query dispatch, validation, authorization, idempotency, transactions, outbox.
+- **Domain:** entities, value objects, aggregate boundaries, invariants, financial calculations.
+- **Infrastructure:** EF Core, external services (notification, storage, IdP, AI, analytics, subscription, backup), caching, background jobs.
 
 ## 5. Cross-Cutting Concerns
 
-Each request passes through:
+Every request passes through: Authentication → Authorization → Validation → Idempotency (mutations) → Logging → Error handling → Audit (where required). Financial mutations additionally wrap persistence, ledger entry, audit record, and outbox event in a single transaction.
 
-```text
-Authentication
-Authorization
-Validation
-Idempotency (for mutations)
-Logging
-Error handling
-Audit recording (where required)
-```
+## 6. Iteration-Architecture Mapping
 
-## 6. Key Architectural Decisions
+| Iteration | Architectural additions |
+| --- | --- |
+| I1 | Identity (offline credential cache), local store + operation queue, sync engine + conflict detection, ROSCA aggregate (Circle/Round/Member/Share/Contribution/Balance) |
+| I2 | Payout Draw, Bidding, Rotation/Lottery, Interest, Reconciliation, Debt, Ledger, P&L, Audit, Reports/Export, offline-aware financial handling |
+| I3 | Integration adapters (notification, file storage, external IdP, AI, analytics, subscription, backup) with degradation policies |
+| I4 | Group, membership, roles/permissions, voting, rules, fines, communication, meetings, tasks |
+| I5 | Accounts, transfers, budgets, invoices, documents, calendar, import/export, sharing, community |
 
-| Decision | Status | Notes |
-|----------|--------|-------|
-| Offline-first | See ADR-001 | Progressive, not initial |
-| Sync strategy | See ADR-002 | Server-authoritative |
-| Financial ledger | See ADR-003 | Append-only, compensating transactions |
-| Idempotency | See ADR-004 | Key-based deduplication |
-| Money handling | Decimal | Fixed-precision, no floating-point |
-| Database | PostgreSQL | Relational with strong constraints |
-| Caching | Redis (progressive) | Not in initial release |
-| Message bus | Outbox pattern | For reliable event publishing |
+## 7. Key Decisions
 
-## 7. Data Flow
+| Decision | Status | Reference |
+| --- | --- | --- |
+| Offline-first | Accepted | ADR-001 |
+| Sync strategy (queue-and-replay, exactly-once) | Accepted | ADR-002 |
+| Append-only financial ledger | Accepted | ADR-003 |
+| Idempotency keys | Accepted | ADR-004 |
+| Money as fixed-precision decimal | Accepted | Business rules BR-FIN-001 |
+| PostgreSQL | Accepted | — |
 
-### Typical Financial Operation
+## 8. Technology Stack
 
-```text
-Member makes contribution
-        │
-        ▼
-API receives command
-        │
-        ▼
-Validate domain rules
-        │
-        ▼
-Begin database transaction
-        │
-        ├── Record contribution
-        ├── Update balance (read model)
-        ├── Record ledger transaction
-        ├── Record audit information
-        └── Create outbox/event record
-        │
-        ▼
-Commit transaction
-        │
-        ▼
-Publish asynchronous events (from outbox)
-        │
-        ▼
-Notification / reporting updates
-```
-
-### User Request Flow
-
-```text
-UI
- ↓
-Route
- ↓
-Page
- ↓
-Feature component
- ↓
-Form / Table
- ↓
-Validation
- ↓
-API service
- ↓
-State management (Pinia)
- ↓
-Error handling
- ↓
-HTTP Request
- ↓
-API Endpoint
- ↓
-Command / Query
- ↓
-Domain Logic
- ↓
-Persistence
-```
-
-## 8. Layer Responsibilities
-
-### Presentation (Frontend)
-
-- User interface rendering and interaction
-- Client-side validation
-- State management (Pinia stores)
-- Routing and navigation
-- Offline queue (progressive)
-
-### Application Layer (Backend)
-
-- API endpoints and request handling
-- Command/query dispatch
-- Input validation
-- Authorization enforcement
-- Transaction management
-- Event publishing
-
-### Domain Layer
-
-- Business rules and invariants
-- Domain entities and value objects
-- Aggregate boundaries
-- Domain events
-- Financial calculations
-
-### Infrastructure Layer
-
-- Database access (EF Core)
-- External service integration
-- Caching
-- Background job processing
-- File storage
-- Notification delivery
-
-## 9. Technology Stack
-
-### Backend
-
-- C# 12+
-- ASP.NET Core 8+
-- ASP.NET Core Web API
-- Entity Framework Core
-- PostgreSQL (Npgsql)
-- ASP.NET Core Identity
-- FluentValidation
-- MediatR (optional, for CQRS pattern)
-
-### Frontend
-
-- Vue 3
-- TypeScript
-- Vue Router
-- Pinia
-- Progressive Web App (PWA) via Vite PWA plugin
-
-### Testing
-
-- xUnit (unit and integration tests)
-- Playwright (end-to-end tests)
-- FluentAssertions
-- WebApplicationFactory (integration testing)
-
-### Infrastructure
-
-- Docker and Docker Compose
-- Git
-- GitHub Actions (CI/CD)
-- Redis (progressive)
-- Object storage (progressive)
-
-## 10. Non-Functional Architecture
-
-### Security
-
-- HTTPS enforced in production
-- Authentication via ASP.NET Core Identity
-- Role-based and resource-level authorization
-- Input validation at all layers
-- SQL injection prevention (parameterized queries via EF Core)
-- CSRF protection
-- Rate limiting on sensitive endpoints
-
-### Performance
-
-- Database indexes for query patterns
-- Eager loading for related data where appropriate
-- Async I/O throughout
-- Pagination for list endpoints
-- Background processing for heavy operations
-
-### Reliability
-
-- Database transactions for multi-record operations
-- Idempotency keys for financial mutations
-- Outbox pattern for event publishing
-- Retry logic for background jobs
-- Graceful error handling with meaningful messages
-
-### Observability
-
-- Structured logging
-- Health check endpoints
-- Metrics collection (progressive)
-- Distributed tracing (progressive)
-- Audit trail for financial operations
-
-## 11. Scalability Considerations
-
-- Horizontal scaling of API instances (stateless)
-- Database connection pooling
-- Read replicas (progressive)
-- Caching for read-heavy queries (progressive)
-- Async processing for long-running operations
+Backend: C# / ASP.NET Core / EF Core / PostgreSQL / ASP.NET Core Identity. Frontend: Vue 3 / TypeScript / Vue Router / Pinia / PWA. Testing: xUnit, WebApplicationFactory, Playwright. Infra: Docker, GitHub Actions, Redis (progressive), object storage (progressive).
