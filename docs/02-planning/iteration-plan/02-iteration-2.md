@@ -9,9 +9,9 @@
 **Epics:** I2-E03 Rotation; I2-E04 Fixed Interest; I2-E05 Reconciliation. Focus: financial rules, rounding, state transitions.
 
 ## Sprint 7 — Debt, Ledger, P&L, Audit, Reports, Export
-**Epics:** I2-E06..I2-E11. Focus: append-only ledger, audit trail, reports, export.
+**Epics:** I2-E06 Debt; I2-E07 Ledger; I2-E08 P&L; I2-E09 Audit; I2-E10 Reports; I2-E11 Export. Focus: append-only ledger, audit trail, reports, export.
 
 ## Sprint 8 — Offline-Aware Financial Handling
-**Epic:** I2-E14. Focus: pending-sync marking, conflict escalation (no auto-merge), never treat unsynced records as authoritative.
+**Epic:** I2-E12 Offline-Aware Financial Handling. Focus: pending-sync marking, conflict escalation (no auto-merge), never treat unsynced records as authoritative.
 
 **Release gate:** all financial operations traceable; calculations tested; audit available; reports reconcile with ledger; offline financial mutations behave safely.
