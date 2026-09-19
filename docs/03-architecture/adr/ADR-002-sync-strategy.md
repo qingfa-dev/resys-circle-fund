@@ -2,11 +2,11 @@
 
 ## Status
 
-Deferred (Phase 4)
+Accepted
 
 ## Context
 
-When offline operation is introduced (Phase 4), the system needs a reliable strategy for synchronizing local changes with the server. Financial data requires stronger guarantees than typical sync scenarios:
+With offline-first adopted as the day-1 foundation (ADR-001), the system needs a reliable synchronization strategy. Financial data requires stronger guarantees than typical sync scenarios:
 
 - No financial data can be silently lost
 - No financial transaction can be duplicated
@@ -35,7 +35,7 @@ The server is the single source of truth for all financial records. The client m
 Conflicts occur when:
 
 - A record was modified locally AND on the server since last sync
-- A dependent record was changed (e.g., period closed locally but server has different state)
+- A dependent record was changed (e.g., round closed locally but server has different state)
 - Server rejects an operation due to business rule violation that wasn't checked locally
 
 ### Conflict Resolution Strategy
@@ -44,7 +44,7 @@ Conflicts occur when:
 |---------------|-----------|
 | Record modified both sides | User notified, show both versions, user chooses |
 | Server rejects operation | Show server error, preserve local copy |
-| Period state changed | Discard local write, show updated state |
+| Round state changed | Discard local write, show updated state |
 | Balance changed by other operations | Recalculate locally from server ledger |
 
 ### Idempotency at Server

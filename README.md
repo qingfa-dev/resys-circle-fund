@@ -41,14 +41,14 @@ CircleFund uses English names in its codebase while preserving the original Viet
 
 | Vietnamese         | CircleFund English      | Description                                                          |
 | ------------------ | ----------------------- | -------------------------------------------------------------------- |
-| Hụi / Họ           | Rotating Savings Group  | The overall financial arrangement                                    |
+| Hụi / Họ           | Rotating Savings Group (ROSCA)  | The overall financial arrangement                                    |
 | Dây hụi            | Savings Circle          | One specific group/circle                                            |
 | Chủ hụi            | Circle Organizer        | Person responsible for organizing and managing the circle            |
 | Con hụi            | Member / Participant    | Person participating in the circle                                   |
 | Phần hụi           | Share                   | A member's share in a circle                                         |
 | Kỳ hụi             | Round                   | A scheduled cycle of the circle                                      |
 | Đóng hụi           | Contribution            | Money contributed by a member                                        |
-| Lĩnh hụi / Hốt hụi | Payout                  | Receiving the pooled funds for a round                               |
+| Lĩnh hụi / Hốt hụi | Payout Draw             | Receiving the pooled funds for a round                               |
 | Đấu hụi / Đấu thầu | Bidding                 | Bidding mechanism used to determine the recipient in certain circles |
 | Hụi không lãi      | Non-interest Circle     | Circle without an interest component                                 |
 | Hụi có lãi         | Interest-bearing Circle | Circle involving an interest component                               |
@@ -269,16 +269,14 @@ The goal is to allow users to access CircleFund from:
 * Mobile browsers
 * Installed PWA applications
 
-The initial application does not require full offline functionality.
+CircleFund is **offline-first**: core financial operations work with or without connectivity from the first release. The client writes locally to an operation queue and synchronizes with the server when connectivity returns, so a market stall or a village visit never stops a Circle Organizer from recording a payment.
 
-Offline operation and synchronization are considered advanced features because financial synchronization introduces additional challenges such as:
+Offline-first is a day-1 foundation, not a late add-on (see [`docs/03-architecture/adr/ADR-001-offline-first.md`](docs/03-architecture/adr/ADR-001-offline-first.md)). Financial synchronization is handled carefully with:
 
-* Duplicate transactions
-* Retry handling
-* Conflicting changes
-* Idempotency
-* Synchronization ordering
-* Conflict resolution
+* Unique local IDs for offline operations
+* Idempotency keys (exactly-once replay)
+* Conflict detection and surface-to-user resolution (never silent overwrite)
+* Pending-sync records visibly distinguished from confirmed totals
 
 The server remains the authoritative source for financial records.
 
@@ -346,69 +344,57 @@ Never use real financial or personal information for development or testing with
 
 ## 🚀 Development Roadmap
 
-CircleFund is developed incrementally.
+CircleFund is delivered incrementally across five releases:
 
-### Phase 1 — Core Circle
+### Iteration 1 — Offline-First Core
 
-* Identity
-* Savings circles
-* Members
-* Shares
-* Rounds
-* Contributions
-* Payment status
-* Balances
-* Dashboard
-* Notifications
+* Identity (with offline login)
+* Local storage & operation queue
+* Savings circles, members, shares
+* Rounds, contributions
+* Balances, dashboard, notifications
+* Synchronization & conflict detection
 
-### Phase 2 — Financial Lifecycle
+### Iteration 2 — Financial Operations
 
-* Payouts
-* Bidding
-* Rotation
-* Interest
-* Debt
-* Financial ledger
-* Reconciliation
-* Profit & loss
-* Audit
-* Reports
-* Export
+* Payout Draw (hốt), Bidding (đấu thầu)
+* No-interest rotation, fixed interest
+* Reconciliation, outstanding debt
+* Financial ledger, profit & loss, audit
+* Reports, export
+* Offline-aware financial handling
 
-### Phase 3 — Groups & Collaboration
+### Iteration 3 — Integrations
 
-* Invitations
-* Roles
-* Permissions
-* Voting
-* Group rules
-* Fines
-* Appeals
-* Chat
-* Announcements
-* Meetings
-* Attendance
-* Tasks
+* Notification delivery, file storage
+* External authentication
+* AI / natural-language entry
+* Analytics, subscription, backup
 
-### Phase 4 — Productivity & Platform
+### Iteration 4 — Group Collaboration
 
-* Accounts
-* Transfers
-* Budgets
-* Invoices
-* Documents
-* Calendar
-* Import/export
-* Offline mode
-* Synchronization
-* Backup and restore
-* Analytics
-* AI-assisted workflows
-* Sharing
-* Subscription
-* Community features
+* Groups, invitations, roles & permissions
+* Announcements, voting, group rules
+* Fines & appeals, communication, meetings, tasks
 
-The roadmap is subject to change as the project develops.
+### Iteration 5 — Advanced Platform
+
+* Accounts, transfers, budgets, invoices
+* Documents, calendar, import/export
+* Sharing, community
+
+The roadmap is subject to change as the project develops. Full detail lives in the documentation.
+
+---
+
+## 📚 Documentation
+
+Complete engineering documentation (requirements, architecture, design, tests, operations) is under [`docs/`](docs/README.md), organized thesis-style with a:
+
+* **Table of Contents** and per-folder guides
+* **List of Tables** and **List of Figures**
+* **References** (IEEE 29148-2018) and an **Appendix index**
+* Full requirement detail: [`docs/01-requirements/srs.md`](docs/01-requirements/srs.md)
 
 ---
 

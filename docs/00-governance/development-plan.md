@@ -2,141 +2,81 @@
 
 ## Development Method
 
-CircleFund uses an incremental, Scrum-style development approach with four planned iterations, each delivering a working increment of functionality.
+CircleFund uses an incremental, Scrum-style approach. Five planned iterations deliver five independently releasable increments, each built on the previous (full detail in `docs/02-planning/iteration-plan.md`):
+
+```text
+Iteration 1  Offline-First Core ROSCA Management
+Iteration 2  Financial Operations (Offline-Capable)
+Iteration 3  Integrations (External Services)
+Iteration 4  Group Collaboration & Governance
+Iteration 5  Advanced Platform
+```
+
+The governing structural decision (see `docs/03-architecture/adr/ADR-001-offline-first.md`): **offline reliability is a day-1, cross-cutting foundation**, not a late add-on. The local operation queue and sync engine are built in Iteration 1, every financial operation inherits them in Iteration 2, and only after the core product is stable do integrations (Iteration 3), collaboration (Iteration 4), and back-office features (Iteration 5) arrive.
 
 ## Development Lifecycle
 
 ```text
-Backlog
-  ↓
-Refinement
-  ↓
-Ready (Definition of Ready satisfied)
-  ↓
-In Progress
-  ↓
-Code Review
-  ↓
-CI / Automated Tests
-  ↓
-QA
-  ↓
-UAT
-  ↓
-Done
+Backlog → Refinement → Ready → In Progress → Code Review → CI → QA → UAT → Done
 ```
 
-## Iteration Strategy
+> A feature is not "done" when the code is written; it is done when implemented, tested, reviewed, documented, deployable, and operationally usable.
 
-Each iteration delivers a potentially releasable increment. Iterations are time-boxed and follow a consistent rhythm of planning, development, review, and retrospective.
+## Cross-Cutting Engineering Epics
 
-### Iteration 1 — Core Circle
+These run across all iterations (and include offline reliability from Iteration 1):
 
-**Goal:** Replace paper-based hụi ledger with a usable digital system.
-
-**Focus areas:**
-
-- Identity and authentication
-- Savings circle management (CRUD, lifecycle)
-- Members and shares
-- Period generation and tracking
-- Contribution recording
-- Balance calculation
-- Dashboard
-- Notifications
-
-**Sprints:** 3 sprints
-
-### Iteration 2 — Financial Lifecycle
-
-**Goal:** Complete the financial operations of the system.
-
-**Focus areas:**
-
-- Hốt (payouts)
-- Bidding (đấu thầu)
-- Rotation and lottery
-- Interest calculations
-- Balance reconciliation
-- Debt management
-- Financial ledger
-- Audit trail
-- Reports and export
-
-**Sprints:** 4 sprints
-
-### Iteration 3 — Group Collaboration
-
-**Goal:** Evolve from personal manager to collaborative platform.
-
-**Focus areas:**
-
-- Groups and invitations
-- Roles and permissions
-- Announcements and voting
-- Group rules
-- Fines and appeals
-- Chat and messaging
-- Meetings and tasks
-
-### Iteration 4 — Platform & Advanced Features
-
-**Goal:** Extend into a broader financial/group platform.
-
-**Focus areas:**
-
-- Financial accounts and transfers
-- Budgets and invoices
-- Documents and calendar
-- Import/export
-- Offline mode and synchronization
-- Backup and restore
-- Analytics
-- Subscription and community features
+```text
+X-E01 Validation
+X-E02 Authorization
+X-E03 Observability
+X-E04 Reliability (transactions, idempotency, concurrency, retries, outbox, background jobs, recovery — including offline sync from Iteration 1)
+X-E05 Testing
+```
 
 ## Definition of Ready
 
-A story should not enter development until:
+A story enters development only when:
 
 - [ ] Business objective is clear
-- [ ] Acceptance criteria are testable
+- [ ] Acceptance criteria are testable (incl. offline/sync criteria where financial)
 - [ ] Dependencies identified
-- [ ] UX requirements defined
+- [ ] UX requirements defined (incl. pending-sync, conflict states)
 - [ ] Domain rules identified
 - [ ] Permission requirements known
-- [ ] Data requirements understood
+- [ ] Data requirements understood (incl. local-ID and sync-status fields)
 - [ ] Technical uncertainty acceptable
 - [ ] Story is estimable
 
 ## Definition of Done
 
-A user story becomes **Done** only when:
+A user story is **Done** only when:
 
 - [ ] Acceptance criteria satisfied
-- [ ] Backend implemented
-- [ ] Frontend implemented when applicable
-- [ ] Database migration complete
-- [ ] Validation implemented
-- [ ] Authorization implemented
-- [ ] Error handling implemented
-- [ ] Unit tests passing
-- [ ] Integration tests passing
-- [ ] API tests passing
-- [ ] Relevant E2E tests passing
-- [ ] Code reviewed
-- [ ] CI passing
-- [ ] Documentation updated
-- [ ] Audit implemented where required
-- [ ] Observability implemented where required
-- [ ] No known critical defects
-- [ ] Deployable
+- [ ] Backend implemented; frontend implemented when applicable
+- [ ] Database migration complete and reversible
+- [ ] Validation, authorization, and error handling implemented
+- [ ] Unit, integration, API tests passing
+- [ ] Relevant offline/sync, concurrency, and E2E tests passing
+- [ ] Code reviewed; CI passing
+- [ ] Documentation updated; audit implemented where required
+- [ ] No known critical defects; deployable
+
+## Financial & Offline Integrity Gate
+
+For relevant iterations, additionally:
+
+- [ ] Calculations verified; ledger reconciles
+- [ ] Duplicate operations prevented; audit trail available
+- [ ] Offline-queued financial mutations never silently overwrite a conflicting server record
+- [ ] Pending-sync records visibly distinguished from confirmed records everywhere
 
 ## Technical Practices
 
-- Domain-first development: business rules in domain/application layer
-- Financial consistency: atomic transactions for multi-record operations
-- Auditability: all financial operations traceable
-- No silent history changes: corrections via compensating transactions
-- Security by design: authorization considered at design time
-- Test-driven development where practical
-- Small increments: working increments over big-bang delivery
+- **Offline-first:** every Iteration 1–2 slice writes through the local queue and syncs; never retrofitted
+- **Domain-first:** business rules in the domain/application layer
+- **Financial consistency:** atomic transactions for multi-record operations
+- **Auditability:** corrections via compensating transactions; no silent history changes
+- **Security by design:** authorization considered at design time
+- **Tested business rules:** calculations, state transitions, and authorization have automated tests
+- **Small increments:** working increments over big-bang delivery

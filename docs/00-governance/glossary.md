@@ -1,57 +1,81 @@
 # Glossary — CircleFund
 
-## Vietnamese Terms
+This glossary uses CircleFund's English domain terminology as the primary term, mapping each back to the original Vietnamese word that the product's users and stakeholders use in practice. Terminology mirrors the authoritative SRS (`docs/01-requirements/srs.md`, Appendix D).
 
-| Term | English Equivalent | Description |
-|------|-------------------|-------------|
-| Hụi / Họ | Rotating Savings Group / Savings Circle | The overall financial arrangement |
-| Dây hụi | Savings Circle | One specific group/circle |
-| Chủ hụi | Circle Organizer | Person responsible for organizing and managing the circle |
-| Con hụi / Hụi viên | Member / Participant | Person participating in the circle |
-| Phần hụi | Share | A member's share in a circle |
-| Kỳ hụi | Round / Period | A scheduled cycle of the circle |
-| Đóng hụi | Contribution | Money contributed by a member |
-| Lĩnh hụi / Hốt hụi | Payout | Receiving the pooled funds for a round |
-| Đấu hụi / Đấu thầu | Bidding | Bidding mechanism to determine the recipient |
-| Hụi không lãi | Non-interest Circle | Circle without an interest component |
-| Hụi có lãi | Interest-bearing Circle | Circle involving an interest component |
-| Công nợ | Debt / Receivable | Outstanding financial obligation |
-| Sổ hụi | Financial Ledger | Record of financial transactions |
-| Đối soát | Reconciliation | Comparing expected and actual financial records |
-| Sổ sách | Ledger / Book | General term for financial records |
+## Domain Terms
+
+| English Term | Vietnamese Term | Explanation |
+| --- | --- | --- |
+| ROSCA (Rotating Savings and Credit Association) | Hụi (also *họ*, *phường*, *biêu* in some regions) | The general name for an informal, trust-based rotating savings/credit arrangement: a fixed group contributes a fixed amount on a fixed schedule, and the pooled amount is given to one member each round until everyone has received a payout once. |
+| Savings Circle | Dây hụi | One running instance of a ROSCA — a specific group with its own members, schedule, and rules. "Dây" literally means "string/strand," evoking a chain of linked people. |
+| Circle Organizer | Chủ hụi | The person who administers a Savings Circle: recruiting members, collecting contributions, running the payout draw, and keeping the books. |
+| Circle Member | Hụi viên | A participant who contributes each round and is entitled to receive the pooled payout in their turn. |
+| Round | Kỳ (also *kỳ hụi*) | One cycle of a Savings Circle (e.g., one month) during which every member contributes and one member receives the payout. |
+| Share | Phần | A single contribution unit within a circle; a member may hold more than one, effectively participating multiple times. |
+| Contribution | Đóng (also *đóng hụi*) | The act of a member paying their required amount for a given Round. |
+| Payout Draw | Hốt (also *hốt hụi*) | A member receiving the pooled funds for a given Round. Literally "to scoop/collect the pot." |
+| Bidding | Đấu thầu | A ROSCA variant where members compete each round by bidding for early access to the payout; the discount is shared among the other members as informal interest. |
+| No-Interest Rotation | Không lãi | A variant with a fixed payout order (or lottery) and no bidding or interest; every member eventually receives what they contributed. |
+| Fixed Interest | Lãi cố định | A variant applying a pre-set interest rate to each round's payout instead of competitive bidding. |
+| Association Type | Loại hụi | The configured variant of a Savings Circle — No-Interest Rotation, Fixed Interest, or Bidding. |
+| Reconciliation | Cân bằng (also *đối soát*) | Comparing expected vs. actual amounts collected/paid for a Round and resolving discrepancies. |
+| Outstanding Debt | Công nợ | The amount a member still owes (unpaid contributions or an unreturned early payout) at a point in time. |
+| Financial Ledger | Sổ hụi | The append-only authoritative record of financial transactions. |
 
 ## General Terms
 
 | Term | Definition |
-|------|-----------|
-| Balance | The current financial position of a member or circle |
-| Contribution | A payment made by a member toward their obligation |
-| Payout | The distribution of pooled funds to a member |
-| Ledger | An append-oriented record of all financial transactions |
-| Audit Trail | A traceable record of who did what, when, and why |
-| Idempotency | Property ensuring an operation can be safely repeated without changing the result |
-| Reconciliation | The process of verifying that expected and actual amounts match |
-| Compensation Transaction | A reversal or correction entry that preserves original transaction history |
-| Round | One complete cycle of a savings circle (synonymous with Period) |
-| Period | A scheduled iteration of the circle during which contributions are due and a payout occurs (synonymous with Round) |
-| Interest Rate | The rate applied to interest-bearing circles, determining the payout amount |
-| Winner | The member selected to receive the pooled funds in a given round |
-| Rotation | A sequential payout order used in non-interest circles |
-| Lottery | A random selection method used to determine the payout recipient |
+| --- | --- |
+| Balance | The current financial position of a member or circle, derived from ledger entries. |
+| Payout | The distribution of pooled funds to a member (distinct from the Payout Draw event that decides *who* receives it). |
+| Winner | The member selected to receive the pooled funds in a given round. |
+| Rotation | A sequential payout order used in No-Interest Rotation circles. |
+| Lottery | A random selection method to determine the payout recipient. |
+| Audit Trail | A traceable record of who did what, when, and why. |
+| Reconciliation | The process of verifying that expected and actual amounts match. |
+| Local Operation Queue | The client-side FIFO store of operations captured offline, pending synchronization. |
+| Idempotency | Property ensuring an operation can be safely retried without duplicating its effect. |
+| Correlation ID | An identifier tracing a logical operation across systems and records. |
 
-## Technical Terms
+## Actors (per SRS Section 2)
 
-| Term | Definition |
-|------|-----------|
-| API | Application Programming Interface |
-| ADR | Architecture Decision Record |
+| ID | Actor |
+| --- | --- |
+| ACT-01 | Visitor |
+| ACT-02 | Registered User |
+| ACT-03 | Circle Organizer |
+| ACT-04 | Circle Member |
+| ACT-05 | Treasurer |
+| ACT-06 | Secretary |
+| ACT-07 | Group Owner |
+| ACT-08 | Group Moderator |
+| ACT-09 | Viewer |
+| ACT-10 | System Administrator |
+| ACT-11 | Notification Service |
+| ACT-12 | File Storage Service |
+| ACT-13 | Scheduler |
+| ACT-14 | Authentication Provider |
+| ACT-15 | Analytics/Reporting Engine |
+| ACT-16 | AI Service |
+| ACT-17 | Backup Storage |
+| ACT-18 | Subscription Provider |
+
+## Standards Abbreviations
+
+| Abbreviation | Meaning |
+| --- | --- |
+| FR | Functional Requirement |
+| NFR | Non-Functional Requirement |
+| UC | Use Case |
+| US | User Story |
+| ACT | Actor |
+| ROSCA | Rotating Savings and Credit Association |
+| SRS | Software Requirements Specification |
+| IEEE 29148 | IEEE standard for requirements engineering (replaces IEEE 830) |
 | PWA | Progressive Web Application |
-| EF Core | Entity Framework Core (ORM) |
-| DDD | Domain-Driven Design |
+| ADR | Architecture Decision Record |
+| EF Core | Entity Framework Core |
 | CQRS | Command Query Responsibility Segregation |
-| CTS | Common Type System (for monetary types) |
-| Outbox | A pattern for reliably publishing events within a transaction |
-| Idempotency Key | A unique identifier preventing duplicate processing of requests |
-| Correlation ID | An identifier tracing a logical operation across multiple systems |
-| Migration | A database schema change applied incrementally |
-| Domain Event | A significant state change within the domain |
+| IdP | Identity Provider |
+| P&L | Profit & Loss |
+| RPO / RTO | Recovery Point/Time Objective |

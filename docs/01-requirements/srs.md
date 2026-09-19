@@ -1,215 +1,111 @@
-# Software Requirements Specification (SRS) — CircleFund
+# Software Requirements Specification — Index
 
-**Author:** Project Team
-**Status:** Draft
-**Version:** 0.1.0
+## Rotating Savings and Credit Association (ROSCA) Management Platform
+
+**Prepared in accordance with IEEE 29148-2018.** This file is the authoritative SRS index; detailed requirements are split by concern into the subfolders below (see the decomposition note at the end).
+
+**Author:** Project Team · **Version:** 5.0
+
+### Document Control
+
+| Version | Change |
+| --- | --- |
+| 5.0 | Restructured to 5 iterations; offline-first; IEEE 29148; decomposed into per-entity files |
 
 ---
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-
-This document is the authoritative Software Requirements Specification for CircleFund, an open-source application for managing rotating savings groups (Hụi). It defines what the system shall do, organized by product iteration.
+Defines the complete functional and non-functional requirements for a ROSCA management platform (Vietnamese "Hụi"). This index is the authoritative requirements baseline.
 
 ### 1.2 Scope
+Five independently releasable iterations:
 
-CircleFund manages savings circles including members, contributions, payouts, financial ledger, and reporting. The system is organized into four iterations, each building upon the previous.
+```text
+Iteration 1  Offline-First Core ROSCA Management
+Iteration 2  Financial Operations (Offline-Capable)
+Iteration 3  Integrations (External Services)
+Iteration 4  Group Collaboration & Governance
+Iteration 5  Advanced Platform
+```
 
-### 1.3 Definitions and Acronyms
+### 1.3 References
+IEEE 29148-2018; IEEE 830-1998 (legacy); IEEE 1058. Glossary: `docs/00-governance/glossary.md`.
+
+---
+
+## 2. Overall Description (summary)
+
+- **Product:** offline-first mobile/web app with a server-side API and PostgreSQL.
+- **Actors:** ACT-01 Visitor, ACT-02 Registered User, ACT-03 Circle Organizer, ACT-04 Circle Member, ACT-05 Treasurer, ACT-06 Secretary, ACT-07 Group Owner, ACT-08 Group Moderator, ACT-09 Viewer, ACT-10 System Administrator; ACT-11 Notification Service, ACT-12 File Storage Service, ACT-13 Scheduler, ACT-14 Authentication Provider, ACT-15 Analytics/Reporting Engine, ACT-16 AI Service, ACT-17 Backup Storage, ACT-18 Subscription Provider.
+- **Permission model:** `Authentication → User → Group Membership → Role → Permission → Resource Ownership → Action`.
+- **Constraints:** core financial functions usable offline; financial mutations auditable and reversible; integrations degrade gracefully.
+
+---
+
+## 3. System Features (index)
+
+### Functional Requirements (`fr/`)
+- **Iteration 1** — `fr/01-iteration-1-offline-first-core/` (8 feature files)
+- **Iteration 2** — `fr/02-iteration-2-financial-operations/` (12 feature files)
+- **Iteration 3** — `fr/03-iteration-3-integrations/` (7 feature files)
+- **Iteration 4** — `fr/04-iteration-4-group-collaboration/` (9 feature files)
+- **Iteration 5** — `fr/05-iteration-5-advanced-platform/` (9 feature files)
+
+### Use Cases (`use-cases/`)
+Grouped per feature per iteration, with associated user stories folded in:
+`use-cases/01-iteration-1/` … `use-cases/05-iteration-5/` (45 files).
+
+### User Stories
+User stories are co-located with their feature's use cases (see each `use-cases/**` file) and referenced from every FR.
+
+### Business Rules (`business-rules/`)
+`01-circle` … `08-integration` (see `business-rules.md` index).
+
+---
+
+## 4. External Interface Requirements
+
+- **User interfaces:** mobile (iOS/Android) and web; core financial screens work offline with a pending-sync indicator (FR-I1-045, FR-I2-049). See `docs/04-design/ui-design/`.
+- **Software interfaces (I3):** Notification Service, File Storage Service, Authentication Provider, AI Service, Analytics/Reporting Engine, Subscription Provider, Backup Storage. See `fr/03-iteration-3-integrations/` and `docs/04-design/api-design/`.
+- **Communication interfaces:** HTTPS/REST; offline queue replays operations on connectivity (FR-I1-041 to 045).
+
+---
+
+## 5. Non-Functional Requirements (index)
+
+NFRs are one per file under `nfr/` (`001-security.md` … `040-versioning.md`). Categories: Security, Financial Security, Data Integrity, Transaction Consistency, Concurrency, Idempotency, Performance, Scalability, Availability, Reliability, Auditability, Maintainability, Testability, Usability, Accessibility, Internationalization, Localization, Data Privacy, Data Retention, Backup, Disaster Recovery, Observability, Logging, API Consistency, API Documentation, Compatibility, Import Reliability, Export Reliability, Offline Reliability, AI Safety, File Security, Notification Reliability, Background Jobs, Search, Pagination, Sorting/Filtering, Error Handling, Deployment, Portability, Versioning.
+
+See the per-iteration matrix in `nfr/` summary (also reproduced in `docs/06-verification/requirements-traceability.md`).
+
+---
+
+## Appendix A: User Story Catalog Index
+
+- I1: US-I1-001 to 025 · I2: US-I2-001 to 022 · I3: US-I3-001 to 013 · I4: US-I4-001 to 021 · I5: US-I5-001 to 017. Located in `use-cases/**`.
+
+## Appendix B: Requirement Traceability Matrix
+
+See `requirements-traceability.md`.
+
+## Appendix C: Actor-to-Iteration Matrix
+
+See `requirements-traceability.md` and `docs/00-governance/glossary.md`.
+
+## Appendix D: Glossary — Vietnamese Terms
 
 See `docs/00-governance/glossary.md`.
 
-### 1.4 References
+---
 
-- Project Charter: `docs/00-governance/project-charter.md`
-- Development Plan: `docs/00-governance/development-plan.md`
-- Business Rules: `docs/01-requirements/business-rules.md`
-- Use Cases: `docs/01-requirements/use-cases.md`
-- Domain Model: `docs/03-architecture/domain-model.md`
+## Decomposition Note
 
-## 2. Overall Description
+This index replaced the former monolithic `srs.md`, `use-cases.md`, and `business-rules.md`. Detail now lives in:
 
-### 2.1 Product Perspective
+- `fr/` — one file per Feature (grouped, related FRs together; zero-padded, iteration-ordered)
+- `nfr/` — one file per NFR
+- `use-cases/` — one file per Feature's use cases (a group of related UCs), with user stories folded in
+- `business-rules/` — one file per category of business rules
 
-CircleFund is a web application with PWA capabilities. The server is the authoritative source for financial records. The application uses a domain-oriented architecture with CQRS/vertical-slice patterns on the backend and Vue 3 on the frontend.
-
-### 2.2 Product Functions
-
-Core functions are organized by iteration:
-
-- **Iteration 1:** Identity, circles, members, rounds, contributions, balances, dashboard, notifications
-- **Iteration 2:** Payouts, bidding, interest, debt, ledger, audit, reports, export
-- **Iteration 3:** Groups, roles, permissions, announcements, voting, rules, fines, chat, meetings, tasks
-- **Iteration 4:** Accounts, budgets, invoices, documents, calendar, offline/sync, analytics, subscription, community
-
-### 2.3 User Characteristics
-
-| Actor | Description |
-|-------|-------------|
-| Visitor | Unauthenticated person |
-| Registered User | Authenticated user |
-| Circle Organizer (Chủ Hụi) | Manages a savings circle |
-| Member (Hụi Viên) | Participates in circles |
-| Treasurer | Manages financial operations |
-| Secretary | Administrative tasks |
-| Group Owner | Manages a collaboration group |
-| Moderator | Moderates group content |
-| Viewer | Read-only access |
-| System Administrator | Platform administration |
-
-### 2.4 Constraints
-
-- Financial calculations use fixed-precision decimal arithmetic
-- Server is authoritative for all financial records
-- All financial mutations must be auditable
-- No silent overwriting of financial history
-
-### 2.5 Assumptions and Dependencies
-
-- Users have access to modern web browsers
-- Email service available for notifications
-- PostgreSQL available for data persistence
-- Redis available for caching (progressive)
-
-## 3. Specific Requirements
-
-### 3.1 Functional Requirements — Iteration 1
-
-See `docs/01-requirements/` for detailed requirements by category.
-
-**Identity & Account:**
-
-- FR-I1-001: Account Registration
-- FR-I1-002: Account Verification
-- FR-I1-003: Authentication
-- FR-I1-004: Logout
-- FR-I1-005: Password Recovery
-- FR-I1-006: Profile Management
-- FR-I1-007: Application Lock
-
-**Savings Circle:**
-
-- FR-I1-008: Create Circle
-- FR-I1-009: Support Circle Types
-- FR-I1-010: View Circle
-- FR-I1-011: Edit Circle
-- FR-I1-012: Pause Circle
-- FR-I1-013: Close Circle
-- FR-I1-014: Archive Circle
-
-**Periods:**
-
-- FR-I1-015: Generate Periods
-- FR-I1-016: Period Numbering
-- FR-I1-017: Period Dates
-- FR-I1-018: Period Status
-- FR-I1-019: View Schedule
-- FR-I1-020: Modify Schedule
-
-**Members & Shares:**
-
-- FR-I1-021: Add Member
-- FR-I1-022: Member Status
-- FR-I1-023: Member Profile
-- FR-I1-024: Assign Share
-- FR-I1-025: Multiple Shares
-- FR-I1-026: Transfer Share
-- FR-I1-027: Membership History
-
-**Contributions & Balance:**
-
-- FR-I1-028: Record Contribution
-- FR-I1-029: Payment Status
-- FR-I1-030: Contribution History
-- FR-I1-031: Duplicate Prevention
-- FR-I1-032: Correction (via compensating transaction)
-- FR-I1-033: Member Balance
-- FR-I1-034: Period Collection
-- FR-I1-035: Circle Balance
-- FR-I1-036: Recalculation
-
-**Dashboard & Notifications:**
-
-- FR-I1-037: Dashboard
-- FR-I1-038: Reminders
-- FR-I1-039: Reminder Status
-
-### 3.2 Functional Requirements — Iteration 2
-
-**Hốt (Payouts):** FR-I2-001 through FR-I2-005
-**Bidding:** FR-I2-006 through FR-I2-011
-**Rotation / Lottery:** FR-I2-012 through FR-I2-016
-**Fixed Interest:** FR-I2-017 through FR-I2-020
-**Reconciliation:** FR-I2-021 through FR-I2-024
-**Debt:** FR-I2-025 through FR-I2-028
-**Financial Ledger:** FR-I2-029 through FR-I2-033
-**Profit & Loss:** FR-I2-034 through FR-I2-036
-**Audit:** FR-I2-037 through FR-I2-039
-**Reports:** FR-I2-040 through FR-I2-043
-**Export:** FR-I2-044 through FR-I2-046
-
-### 3.3 Functional Requirements — Iteration 3
-
-Group, Roles, Announcements, Voting, Rules, Fines, Chat, Meetings, Tasks (FR-I3-001 through FR-I3-037)
-
-### 3.4 Functional Requirements — Iteration 4
-
-Accounts, Budgets, Invoices, Documents, Calendar, Import/Export, Offline/Sync, Backup/Restore, AI, Analytics, Sharing, Subscription, Community (FR-I4-001 through FR-I4-055)
-
-## 4. Non-Functional Requirements
-
-### 4.1 Security
-
-- Authentication via ASP.NET Core Identity
-- Role-based and resource-level authorization
-- All API endpoints require authentication unless explicitly public
-- Resource ownership checked for all data access
-- Input validation on all user inputs
-- Secure password hashing
-- Audit logging for sensitive operations
-- Rate limiting on authentication endpoints
-- CSRF protection
-- HTTPS enforced in production
-
-### 4.2 Performance
-
-- Dashboard loads within 2 seconds
-- API responses within 500ms for standard operations
-- Report generation may be asynchronous for large datasets
-- Database queries optimized with appropriate indexes
-
-### 4.3 Reliability
-
-- Financial operations use database transactions
-- Idempotency keys prevent duplicate processing
-- Background jobs have retry logic
-- System maintains 99.5% uptime target (post-MVP)
-
-### 4.4 Auditability
-
-- All financial operations recorded in audit trail
-- Audit records capture: actor, action, timestamp, resource, before/after, correlation ID
-- Financial history cannot be silently deleted or overwritten
-
-### 4.5 Usability
-
-- Responsive design for desktop, tablet, and mobile
-- PWA installable on supported devices
-- Intuitive navigation following common patterns
-- Clear error messages in user's language
-
-### 4.6 Scalability
-
-- Horizontal scaling of API layer
-- Database read replicas for reporting (Phase 2+)
-- Background processing for heavy operations
-- Caching for frequently accessed data (progressive)
-
-### 4.7 Maintainability
-
-- Clean architecture with separation of concerns
-- Vertical slice organization
-- Comprehensive automated tests
-- Consistent coding standards
-- Documentation maintained alongside code
+Every requirement ID remains stable and is cross-referenced across these files and the traceability matrices.

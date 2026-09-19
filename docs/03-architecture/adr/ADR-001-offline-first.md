@@ -2,11 +2,11 @@
 
 ## Status
 
-Deferred (Phase 4)
+Accepted
 
 ## Context
 
-CircleFund is designed as a PWA, and mobile users may have unreliable connectivity. The initial release targets users with reliable internet, but offline capability is desired for the platform phase. Financial operations introduce unique challenges for offline mode:
+CircleFund users (Circle Organizers, Circle Members) frequently operate in connectivity-poor contexts (village visits, market stalls). The original draft deferred offline support to a late "Advanced Platform" iteration, which would have forced a costly retrofit of every feature. Financial operations add unique challenges for offline mode:
 
 - Duplicate transactions when connectivity resumes
 - Retry handling for failed operations
@@ -17,33 +17,37 @@ CircleFund is designed as a PWA, and mobile users may have unreliable connectivi
 
 ## Decision
 
-CircleFund adopts a **progressive offline** approach rather than full offline-first from the start:
+CircleFund adopts **offline-first as its day-1 foundation**:
 
-1. **Phase 1-3 (No offline):** All operations require server connectivity. The server is the single source of truth for all financial data.
+1. **Iteration 1 builds the local store and operation queue** (`FR-I1-041` to `FR-I1-045`), with a sync engine and conflict detection, before or alongside the ROSCA aggregate. Every writing slice is designed against the offline flow from the start.
 
-2. **Phase 4 (Progressive offline):** Selected read operations are cacheable for offline viewing. Selected write operations can be queued locally and synchronized when connectivity returns.
+2. **The server remains the authoritative source** for all financial records; the client is a synchronization client, never authoritative.
 
-### Offline Scope (Phase 4)
+3. **Financial mutations inherit the offline queue** in Iteration 2 (`FR-I2-047` to `FR-I2-049`), with conflict escalation (manual reconciliation) rather than auto-merge.
+
+### Offline Scope (Day-1, Iterations 1–2)
+
+**Available offline (write):**
+
+- Contribution recording
+- Payout Draw, Bidding (Iteration 2), and simple data-entry operations
 
 **Available offline (read-only cache):**
 
 - Circle summaries and current balances
 - Recent contribution history
-- Upcoming period schedules
+- Upcoming round schedules
 - Member lists
 
-**Queueable offline (write):**
+**Available offline (with manual resolution):**
 
-- Contribution recording
-- Simple data entry operations
+- Conflicting edits (financial and non-financial) — surfaced, never auto-merged
 
 **Not available offline:**
 
-- Complex financial calculations
-- Payout authorization
-- Bidding
-- Reconciliation
+- Complex financial calculations requiring authoritative server state
 - Configuration changes
+- Integration-dependent actions (Iteration 3)
 
 ### Synchronization Model
 
@@ -59,23 +63,24 @@ CircleFund adopts a **progressive offline** approach rather than full offline-fi
 
 ### Positive
 
-- Users in areas with unreliable connectivity can still perform some operations
-- Gradual rollout reduces complexity and risk
-- Server-authoritative model prevents financial inconsistencies in the initial release
+- Users in areas with unreliable connectivity can perform core operations from day one
+- Offline-first foundations are built into Iteration 1, avoiding a costly retrofit
+- Server-authoritative model prevents financial inconsistencies
 - Idempotency at the API layer supports safe retry during sync
 
 ### Negative
 
-- Users may expect full offline support earlier than Phase 4
-- Sync conflict resolution UX needs careful design
+- Sync conflict-resolution UX needs careful design
 - Local data storage adds client complexity
 - Testing scenarios multiply (online, offline, partial connectivity, sync conflicts)
+- Every Iteration 1–2 slice must be designed against the queue, which is more upfront work
 
 ### Risks
 
-- Users might attempt financial operations offline and be confused by rejection
 - Sync queue data loss on client device
-- Conflict resolution may require manual intervention
+- Conflict resolution may require manual intervention for financial mutations
+- Incorrectly treating a pending-sync record as authoritative
+- Local-ID collisions with server IDs
 
 ## Mitigations
 

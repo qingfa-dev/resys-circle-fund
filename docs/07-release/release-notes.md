@@ -2,75 +2,65 @@
 
 ## Template
 
-Each release should document what changed, what's known, and what requires attention.
-
 ```text
 # Release vX.Y.Z
-**Date:** YYYY-MM-DD
-**Tag:** vX.Y.Z
-**Commit:** [commit hash]
+**Date:** YYYY-MM-DD · **Tag:** vX.Y.Z
 
-## New Features
-- Feature description and context
-
-## Improvements
-- What changed and why
-
-## Bug Fixes
-- What was broken and how it was fixed
-
-## Known Issues
-- Current limitations or bugs
-
-## Breaking Changes
-- Any changes requiring user action
-
-## Migration Notes
-- Steps needed for existing data/users
-
-## Dependencies Updated
-- Packages with version changes
-
+## New Features / Improvements / Bug Fixes
+## Known Issues / Breaking Changes / Migration Notes
 ## Verification Summary
-- Test coverage for this release
-- Test pass rate
-- Critical test results
 ```
 
 ## Release History
 
-| Version | Date | Key Changes | Status |
-|---------|------|-------------|--------|
-| v0.1.0 | TBD | Core circle features (I1) | Planned |
-| v0.2.0 | TBD | Financial lifecycle (I2) | Planned |
-| v0.3.0 | TBD | Group collaboration (I3) | Planned |
-| v0.4.0 | TBD | Platform features (I4) | Planned |
-| v1.0.0 | TBD | Production-ready | Planned |
+| Version | Key Changes | Status |
+| --- | --- | --- |
+| v1.0 | Offline-First Core ROSCA (I1) | Planned |
+| v2.0 | Financial Operations (I2) | Planned |
+| v3.0 | Integrations (I3) | Planned |
+| v4.0 | Collaborative ROSCA (I4) | Planned |
+| v5.0 | Platform (I5) | Planned |
 
 ## Upcoming Releases
 
-### v0.1.0 (Iteration 1 — Core Circle)
+### v1.0 — Offline-First Core ROSCA
 
-**Focus:** Basic savings circle management
-
-- User registration and authentication
-- Circle creation and configuration
-- Member and share management
-- Period generation and tracking
+- Identity with offline credential-cached login
+- Local storage & operation queue
+- Savings Circle lifecycle and Association Types
+- Round generation and scheduling
+- Member & Share management
 - Contribution recording with duplicate prevention
 - Balance calculation
-- Dashboard
-- Notifications
+- Dashboard and notifications
+- Synchronization & conflict detection
 
-### v0.2.0 (Iteration 2 — Financial Lifecycle)
+### v2.0 — Financial Operations
 
-**Focus:** Complete financial operations
+- Payout Draw, Bidding, No-Interest Rotation, Fixed Interest
+- Reconciliation, Outstanding Debt, Financial Ledger, P&L, Audit
+- Reports and CSV/Excel export
+- Offline-aware financial handling (pending-sync, conflict escalation)
 
-- Payouts (Hốt) and payout mechanisms
-- Bidding (Đấu thầu)
-- Interest calculations
-- Balance reconciliation
-- Debt tracking and aging
-- Financial ledger with audit trail
-- Profit & Loss reporting
-- CSV/Excel export
+### v3.0 — Integrations
+
+- Notification delivery with retry/dedup
+- File storage with validation/scan/authorization
+- External authentication (IdP login/link/revoke)
+- AI-assisted natural-language entry (propose → confirm)
+- Analytics, subscription/billing, backup & restore
+
+### v4.0 — Collaborative ROSCA
+
+- Groups, invitations, roles & permissions
+- Announcements, voting (with quorum), group rules
+- Fines & appeals, communication, meetings, tasks
+
+### v5.0 — Platform
+
+- Financial accounts & transfers, budgets, invoices
+- Documents, calendar, import/export, sharing, community
+
+## Release Notes Discipline
+
+Each release note must document: what changed, known issues, breaking changes, migration steps, dependency updates, and a verification summary (test pass rate, critical results, environment approval).

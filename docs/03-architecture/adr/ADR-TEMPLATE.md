@@ -49,7 +49,7 @@ When an architecture decision is made, create a new file following this template
 
 | ADR # | Title | Status | Date |
 |-------|-------|--------|------|
-| ADR-001 | Offline-First Approach | Deferred | TBD |
-| ADR-002 | Synchronization Strategy | Deferred | TBD |
+| ADR-001 | Offline-First Approach | Accepted | TBD |
+| ADR-002 | Synchronization Strategy | Accepted | TBD |
 | ADR-003 | Financial Ledger Design | Accepted | TBD |
 | ADR-004 | Idempotency Strategy | Accepted | TBD |
